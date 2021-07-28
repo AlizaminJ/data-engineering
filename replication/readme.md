@@ -1,4 +1,4 @@
-How to replicate remote tables to AWS S3 via a local Windows machine
+# How to replicate remote tables to AWS S3 via a local Windows machine
 
 Steps:
 - Include credentials into .py script
