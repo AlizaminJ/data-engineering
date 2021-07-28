@@ -1,0 +1,263 @@
+//STEP 1) Download SQL Workbench: http://www.sql-workbench.net/downloads.html
+//STEP 2) Install the appropriate JDBC Drivers (from AWS Console: Cluster->Connect Client->Download JDBC or ODBC). Follow SQL Workbench Config instrucitons here:
+       JDBC: http://docs.aws.amazon.com/redshift/latest/mgmt/configure-jdbc-connection.html
+       ODBC: http://docs.aws.amazon.com/redshift/latest/mgmt/configure-odbc-connection.html
+// IF YOU HAVE CONNECTION ISSUES, YOU PROBABLY DID NOT UPDATE YOUR VPC SECURITY GROUPS TO ALLOW ACCESS
+// IN THE CONSOLE, GO TO: VPC->Security (header on left hand nav)->Security Groups->Select 'default'->Edit->Add Custom from your IP
+// If SQL Workbench is doing nonsensical things (like keeping tables around after you deleted them, closing connections on you, etc), you probably need to review the "Configuring SQL Workbench lab.
+
+// ********** START OF PART 1 ********** 
+
+// BEFORE YOU LOAD THE DATA INTO S3 YOU HAVE TO DOWNLOAD IT
+// http://docs.aws.amazon.com/redshift/latest/dg/tutorial-loading-data-download-files.html
+// DIRECT ACCESS TO THE DOWNLOAD IS AT:
+// https://s3.amazonaws.com/awssampledb/LoadingDataSampleFiles.zip
+// UPLOAD THESE TO YOUR S3 BUCKET
+
+select distinct(tablename) from pg_table_def where schemaname = 'public';
+// If that shows tables (it shouldn't), then you need to issue some drop statements
+
+drop table part;
+drop table supplier;
+drop table customer;
+drop table dwdate;
+drop table lineorder;
+
+
+CREATE TABLE part 
+(
+  p_partkey     INTEGER NOT NULL,
+  p_name        VARCHAR(22) NOT NULL,
+  p_mfgr        VARCHAR(6),
+  p_category    VARCHAR(7) NOT NULL,
+  p_brand1      VARCHAR(9) NOT NULL,
+  p_color       VARCHAR(11) NOT NULL,
+  p_type        VARCHAR(25) NOT NULL,
+  p_size        INTEGER NOT NULL,
+  p_container   VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE supplier 
+(
+  s_suppkey   INTEGER NOT NULL,
+  s_name      VARCHAR(25) NOT NULL,
+  s_address   VARCHAR(25) NOT NULL,
+  s_city      VARCHAR(10) NOT NULL,
+  s_nation    VARCHAR(15) NOT NULL,
+  s_region    VARCHAR(12) NOT NULL,
+  s_phone     VARCHAR(15) NOT NULL
+);
+
+CREATE TABLE customer 
+(
+  c_custkey      INTEGER NOT NULL,
+  c_name         VARCHAR(25) NOT NULL,
+  c_address      VARCHAR(25) NOT NULL,
+  c_city         VARCHAR(10) NOT NULL,
+  c_nation       VARCHAR(15) NOT NULL,
+  c_region       VARCHAR(12) NOT NULL,
+  c_phone        VARCHAR(15) NOT NULL,
+  c_mktsegment   VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE dwdate 
+(
+  d_datekey            INTEGER NOT NULL,
+  d_date               VARCHAR(19) NOT NULL,
+  d_dayofweek          VARCHAR(10) NOT NULL,
+  d_month              VARCHAR(10) NOT NULL,
+  d_year               INTEGER NOT NULL,
+  d_yearmonthnum       INTEGER NOT NULL,
+  d_yearmonth          VARCHAR(8) NOT NULL,
+  d_daynuminweek       INTEGER NOT NULL,
+  d_daynuminmonth      INTEGER NOT NULL,
+  d_daynuminyear       INTEGER NOT NULL,
+  d_monthnuminyear     INTEGER NOT NULL,
+  d_weeknuminyear      INTEGER NOT NULL,
+  d_sellingseason      VARCHAR(13) NOT NULL,
+  d_lastdayinweekfl    VARCHAR(1) NOT NULL,
+  d_lastdayinmonthfl   VARCHAR(1) NOT NULL,
+  d_holidayfl          VARCHAR(1) NOT NULL,
+  d_weekdayfl          VARCHAR(1) NOT NULL
+);
+
+CREATE TABLE lineorder 
+(
+  lo_orderkey          INTEGER NOT NULL,
+  lo_linenumber        INTEGER NOT NULL,
+  lo_custkey           INTEGER NOT NULL,
+  lo_partkey           INTEGER NOT NULL,
+  lo_suppkey           INTEGER NOT NULL,
+  lo_orderdate         INTEGER NOT NULL,
+  lo_orderpriority     VARCHAR(15) NOT NULL,
+  lo_shippriority      VARCHAR(1) NOT NULL,
+  lo_quantity          INTEGER NOT NULL,
+  lo_extendedprice     INTEGER NOT NULL,
+  lo_ordertotalprice   INTEGER NOT NULL,
+  lo_discount          INTEGER NOT NULL,
+  lo_revenue           INTEGER NOT NULL,
+  lo_supplycost        INTEGER NOT NULL,
+  lo_tax               INTEGER NOT NULL,
+  lo_commitdate        INTEGER NOT NULL,
+  lo_shipmode          VARCHAR(10) NOT NULL
+);
+
+select distinct(tablename) from pg_table_def where schemaname = 'public';
+//should now show tables. Yay!
+
+// ********** END OF PART 1 ********** 
+
+// ********** START OF PART 2 ********** 
+
+// BASIC COPY COMMAND STRUCTURE
+copy table
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+options;
+
+// LOWER SLOT COUNT TO SPEED THE LOADING OF DATA
+set wlm_query_slot_count to 2;
+
+// FOR YOUR SPECIFIC TABLES & BUCKET [THIS LOAD WILL FAIL]
+copy part
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY';
+
+// FOR YOUR SPECIFIC TABLES & BUCKET [THIS LOAD WILL SUCCEED]
+copy part
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+csv
+null as '\000';
+
+// IN 2ND TAB ("Statement 2" in SQL Workbench), RUN THE FOLLOWING TO SEE WHY YOU FAILED LOAD
+select query, substring(filename,22,25) as filename,line_number as line, 
+substring(colname,0,12) as column, type, position as pos, substring(raw_line,0,30) as line_text,
+substring(raw_field_value,0,15) as field_text, 
+substring(err_reason,0,45) as reason
+from stl_load_errors 
+order by query desc
+limit 10;
+
+// LOAD THE SUPPLIER DATA [IT COMES FROM AN AWS-SUPPORTED BUCKET IN THE 'us-west-2' REGION]
+copy supplier
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+delimiter '|'
+gzip
+region 'us-west-2';
+
+// LOAD THE CUSTOMER DATA [IT'S FIXED-WIDTH, SO USE MANIFEST -- THIS WILL FAIL BECAUSE OF BAD DATA]
+copy customer
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+fixedwidth 'c_custkey:10, c_name:25, c_address:25, c_city:10, c_nation:15, c_region :12, c_phone:15,c_mktsegment:10';
+
+// CUSTOMER DATA IS FIXED-WIDTH, SO TRY TO ADD THAT
+copy customer
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+fixedwidth 'c_custkey:10, c_name:25, c_address:25, c_city:10, c_nation:15, c_region :12, c_phone:15,c_mktsegment:10'
+maxerror 10;
+
+// WE STILL HAVE DATA ERRORS, USE A MANIFEST TO AVOID UNWANTED TABLES
+// [THIS BUCKET FOLDER CONTAINS A BUNCH OF FILES LIKE .log, .bak THAT WE DON'T WANT TO LOAD]
+// CREATE A MANIFEST
+{
+  "entries": [
+    {"url":"arn:aws:s3:::BUCKET_PATH"},
+    {"url":"arn:aws:s3:::BUCKET_PATH"},
+    {"url":"arn:aws:s3:::BUCKET_PATH"},
+    {"url":"arn:aws:s3:::BUCKET_PATH"},
+    {"url":"arn:aws:s3:::BUCKET_PATH"},    
+    {"url":"arn:aws:s3:::BUCKET_PATH"},
+    {"url":"arn:aws:s3:::BUCKET_PATH"}, 
+    {"url":"arn:aws:s3:::BUCKET_PATH"} 
+    ]
+}
+// SAVE THIS AS 'customer-fw-manifest' & UPLOAD TO YOUR S3 BUCKET
+
+// NOW THIS SHOULD WORK ['acceptinvchars' only works on VARCHAR cols, but replaces any bad chars with whatever you specify]
+copy customer
+from 'arn:aws:s3:::BUCKET_PATH'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+fixedwidth 'c_custkey:10, c_name:25, c_address:25, c_city:10, c_nation:15, c_region :12, c_phone:15,c_mktsegment:10'
+maxerror 10
+acceptinvchars as '^'
+manifest;
+
+// GREAT WALKTHROUGH OF A BUNCH OF OTHER GOTCHAS AT: http://docs.aws.amazon.com/redshift/latest/dg/tutorial-loading-run-copy.html
+// BUT WE'RE GOING TO INSTEAD USE DATA SETS FROM CLEAN, GZIPPED FILES IN S3 BUCKETS THAT AWS HOSTS
+// IF YOU'RE IN ANOTHER REGION THAN 'us-west-2', YOU CAN GET THE LIST OF REGION-SPECIFIC BUCKET NAMES AT:
+// http://docs.aws.amazon.com/redshift/latest/dg/tutorial-tuning-tables-create-test-data.html
+
+// select count(*) from  customer;
+
+select distinct(tablename) from pg_table_def where schemaname = 'public';
+select count(*) from customer;
+select count(*) from dwdate;
+select count(*) from lineorder;
+select count(*) from part;
+select count(*) from supplier;
+
+delete from customer;
+delete from part;
+delete from supplier;
+
+// NOW GO AHEAD & RE-CREATE THOSE TABLES & PERFORM ALL THE LOADS BELOW, ONE AT A TIME!
+
+// COPY dwdate
+copy dwdate from 's3://awssampledbuswest2/ssbgz/dwdate'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+gzip
+compupdate off
+
+// COPY part
+copy part from 's3://awssampledbuswest2/ssbgz/part'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+gzip
+compupdate off
+
+// COPY supplier
+copy supplier from 's3://awssampledbuswest2/ssbgz/supplier'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+gzip
+compupdate off
+
+// COPY customer
+copy customer from 's3://awssampledbuswest2/ssbgz/customer'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+gzip
+compupdate off
+
+// COPY lineorder (has 600,000,000 records... gonna be very slow)
+copy lineorder from 's3://awssampledbuswest2/ssbgz/lineorder'
+credentials 'aws_access_key_id=YOUR_ACCESS_KEY'
+gzip
+compupdate off
+
+// LINEORDER TAKES A LOOOONG TIME TO COPY
+// CHECK STL_LOAD_COMMITS TABLE TO SEE THE LAST COMMIT:
+select query, trim(filename) as file, curtime as updated
+from stl_load_commits order by updated desc;
+
+// CHECK DATA DISTRIBUTION ON ALL TABLES
+select slice, col, num_values, minvalue, maxvalue
+from svv_diskusage
+where name='customer' and col=0
+order by slice,col;
+
+// LOOK FOR DISK SPILLS
+select query, step, rows, workmem, label, is_diskbased
+from svl_query_summary
+where query = [YOUR-QUERY-ID]
+order by workmem desc;
+
+// CHECK COLUMN, DISTKEY, SORTKEY FOR A GIVEN TABLE
+select "column", type, encoding, distkey, sortkey, "notnull" 
+from pg_table_def
+where tablename = 'lineorder';
+
+// SQL WORKBENCH CAN SOMETIMES STILL BE LOCKED IN 'HANG' STATUS (SHOWING 'EXECUTING STATEMENT')
+// ALWAYS CHECK REDSHIFT 'LOAD' CONSOLE TO SEE IF A TABLE REALLY LOADED
+
