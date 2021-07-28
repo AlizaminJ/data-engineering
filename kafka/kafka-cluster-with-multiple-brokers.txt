@@ -1,0 +1,161 @@
+# Kafka cluster with multiple brokers (in a single computer)
+
+# - Every broker in the SAME(!) computer must have
+#   - Unique properties
+#   - Unique broker ID
+#   - Unqiue log directory 
+
+# - Create a new server.properties file for each broker in config folder
+# - For the server0, change to: log.dirs=/tmp/kafka-logs-0
+# - For the server1, change to: 
+#   - broker.id=1
+#   - uncomment listeners, and set to "listeners=PLAINTEXT://:9093"
+#   - log.dirs=/tmp/kafka-logs-1
+# - For the server2, change to: 
+#   - broker.id=2
+#   - uncomment listeners, and set to "listeners=PLAINTEXT://:9094"
+#   - log.dirs=/tmp/kafka-logs-2
+
+# Basic KAFKA Commands
+
+# START ZOOKEEPER
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+
+# START KAFKA BROKERS
+bin/kafka-server-start.sh config/server0.properties
+bin/kafka-server-start.sh config/server1.properties
+bin/kafka-server-start.sh config/server2.properties
+
+
+# GET INFORMATION FROM ZOOKEEPER ABOUT ACTIVE BROKER IDS
+bin/zookeeper-shell.sh localhost:2181 ls /brokers/ids
+
+
+# GET INFORMATION FROM ZOOKEEPER ABOUT SPECIFIC BROKER BY ID
+bin/zookeeper-shell.sh localhost:2181 get /brokers/ids/0
+
+
+# Below it is though enough with one port to connect to the whole cluster
+# Total number of partitions = replication factor x nr. of partitions, here 15 partiitons total, amd at least (!) 5 partitions in each broker.
+# CREATE TOPIC without # --replication-factor 3 \
+bin/kafka-topics.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--create \
+--partitions 5 \
+--topic cars
+
+
+# LIST TOPICS
+bin/kafka-topics.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--list
+
+
+# TOPIC DETAILS
+bin/kafka-topics.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--describe \
+--topic cars
+
+
+# START CONSOLE PRODUCER
+bin/kafka-console-producer.sh \
+--broker-list localhost:9092,localhost:9093,localhost:9094 \
+--topic cars
+
+
+# START CONSOLE CONSUMER
+bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--topic cars
+
+
+# START CONSOLE CONSUMER AND READ MESSAGES FROM BEGINNING
+bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--topic test-topic \
+--from-beginning
+
+
+###########################################
+
+
+# Kafka cluster with multiple brokers and topic with replication
+
+
+# START ZOOKEEPER
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+
+# START KAFKA BROKER
+bin/kafka-server-start.sh config/server0.properties
+bin/kafka-server-start.sh config/server1.properties
+bin/kafka-server-start.sh config/server2.properties
+
+
+# GET INFORMATION FROM ZOOKEEPER ABOUT ACTIVE BROKER IDS
+bin/zookeeper-shell.sh localhost:2181 ls /brokers/ids
+
+
+# GET INFORMATION FROM ZOOKEEPER ABOUT SPECIFIC BROKER BY ID
+bin/zookeeper-shell.sh localhost:2181 get /brokers/ids/0
+
+
+# CREATE TOPIC
+bin/kafka-topics.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--create \
+--replication-factor 3 \
+--partitions 7 \
+--topic months
+
+
+# LIST TOPICS
+bin/kafka-topics.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--list
+
+
+# TOPIC DETAILS
+bin/kafka-topics.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--describe \
+--topic months
+
+
+# START CONSOLE PRODUCER
+bin/kafka-console-producer.sh \
+--broker-list localhost:9092,localhost:9093,localhost:9094 \
+--topic months
+
+
+# START CONSOLE CONSUMER
+bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--topic months
+
+
+# START CONSOLE CONSUMER AND READ MESSAGES FROM BEGINNING
+bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--topic months \
+--from-beginning
+
+
+# START CONSOLE CONSUMER AND READ MESSAGES FROM SPECIFIC PARTITION
+bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--topic months \
+--partition 6 \
+--from-beginning
+
+
+# START CONSOLE CONSUMER AND READ MESSAGES FROM SPECIFIC PARTITION AND SPECIFIC OFFSET
+bin/kafka-console-consumer.sh \
+--bootstrap-server localhost:9092,localhost:9093,localhost:9094 \
+--topic months \
+--partition 3 \
+--offset 2
+
+
