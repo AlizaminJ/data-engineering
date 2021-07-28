@@ -17,8 +17,8 @@ schema = '<SCHEMA>'
 
 # note tables to replicated with its replication key (usually modified, updated) in the dictionary below
 table = {
-    'sales': 'ROWNUMBER',
-    'sales_hist': 'ROWNUMBER'
+    '<TABLE1>': '<REPLICATION_KEY>',
+    '<TABLE2>': '<REPLICATION_KEY>'
     }
 
 # a folder to cache replication parameter
