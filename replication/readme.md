@@ -3,5 +3,5 @@
 Steps:
 - Include credentials into .py script
 - Install aws cli
-- Include credentials into .bat file
+- Change the path in .bat file
 - Create a task in task scheduler to run it periodically
