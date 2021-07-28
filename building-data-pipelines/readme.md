@@ -1,4 +1,7 @@
-# Reading
+# How to build data pipelines
+
+
+### Reading
 
 - https://12factor.net/
 - http://www.charleshooper.net/blog/briefly-operator-requirements/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+subversity+%28Charles+Hooper%29
