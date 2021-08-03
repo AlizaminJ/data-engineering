@@ -17,14 +17,14 @@ password = '<PASSWORD>'
 # TABLE PARAMATERS
 # note tables to replicated with its replication key (usually modified, updated) in the dictionary below
 table = {
-  'table1':'id',
-  'table2':'id
+   '<TABLE1>': '<REPLICATION_KEY>',
+   '<TABLE2>': '<REPLICATION_KEY>'
     }
 
 # a folder to cache replication parameter
-cachedir = 'cachedir'
+cachedir = '<FOLDER>'
 # a folder to save files
-savedir = 'savedir'
+savedir = '<FOLDER>'
 
 
 def connection():
