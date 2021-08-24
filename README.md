@@ -7,5 +7,6 @@
   <li><a href="https://www.altexsoft.com/blog/datascience/machine-learning-project-structure-stages-roles-and-tools/">"Machine Learning Project Structure: Stages, Roles, and Tools" by Altexsoft</a></li>
   <li><a href="https://www.guru99.com/data-warehousing.html">Data Warehousing Tutorial</a></li>
   <li><a href="https://github.com/AlizaminJ/Cookbook">Data Engineer Cookbook</a></li>
-  <li><a href=""></a></li>
+    <li><a href="https://multithreaded.stitchfix.com/blog/2016/03/16/engineers-shouldnt-write-etl/">Engineers Shouldn’t Write ETL</a></li>
+    <li><a href=""></a></li>
 </ul>
