@@ -8,7 +8,7 @@ apt-get install fail2ban
 ```
 
 ```
-# create a new user with sudo priviliges
+# create a new user with sudo privileges
 adduser deploy
 ```
 
@@ -16,6 +16,7 @@ adduser deploy
 # check the new directory
 ls -la /home/deploy
 ```
+
 ```
 # create ssh directory and copy ssh content from root (we need ssh, not bash) to make sure that we login with ssh
 mkdir /home/deploy/.ssh
@@ -33,12 +34,13 @@ chown deploy:deploy -R /home/deploy/
 ```
 
 ```
-# add sudo priviliges (may use vim instead of vim: https://www.vimgolf.com/, I am a nano-fan)
+# add sudo privileges (may use vim instead of vim: https://www.vimgolf.com/, I am a nano-fan)
 export EDITOR=nano
 visudo
 #and add the following
 deploy  ALL=(ALL:ALL) ALL
 ```
+
 ```
 # turn off ssh root login and test our deploy-user
 nano /etc/ssh/sshd_config
@@ -50,9 +52,10 @@ nano /etc/ssh/sshd_config
 # to allow which users can login (may skip it if you are using a server with lots of users)
 AllowUsers deploy
 ```
+
 ```
 # restart ssh
-service ssh restart 
-#OR 
+service ssh restart
+#OR
 systemctl restart sshd
 ```
