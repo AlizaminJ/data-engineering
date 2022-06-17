@@ -1,7 +1,7 @@
 # Data Engineering
 
 
-### Tools to learn
+### Useful Tools
 <ul>
     <li><a href="https://debezium.io/">Debezium</a> for change data capture, <a href="https://medium.com/shippeo-tech-blog/debezium-to-snowflake-lessons-learned-building-data-replication-in-production-a5430a9fe85b">architecture example</a></li>
     <li><a href=""></a></li>
