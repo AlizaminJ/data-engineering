@@ -4,9 +4,14 @@
 ### Useful Tools
 <ul>
     <li><a href="https://debezium.io/">Debezium</a> for change data capture, <a href="https://medium.com/shippeo-tech-blog/debezium-to-snowflake-lessons-learned-building-data-replication-in-production-a5430a9fe85b">architecture example</a></li>
+    <li><a href="https://meltano.com/">Meltano</a> for DataOps</li>
+    <li><a href="https://datahubproject.io/">DataHub: The Metadata Platform for the Modern Data Stack</a></li>
+    <li><a href="https://www.prefect.io/">Prefect - Orchestration</a></li>
     <li><a href=""></a></li>
     <li><a href=""></a></li>
     <li><a href=""></a></li>
+    <li><a href=""></a></li>
+
 </ul>
 
 
